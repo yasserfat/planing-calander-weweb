@@ -1334,8 +1334,8 @@ export default {
             },
         },
         {
-            name: 'viewChange',
-            label: { en: 'On view change' },
+            name: 'datesChange',
+            label: { en: 'On dates change' },
             event: { 
                 value: {
                     view: 'dayGridMonth',

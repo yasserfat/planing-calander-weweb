@@ -53,20 +53,53 @@ export default {
             defaultValue: null,
         });
 
-        // NEW: startDate component variable
+        // Calculate initial default dates
+        const initialDates = (() => {
+            const now = new Date();
+            const view = props.content.defaultView || 'dayGridMonth';
+            const start = new Date(now);
+            const end = new Date(now);
+            
+            // Basic approximation of initial view dates
+            if (view === 'dayGridMonth') {
+                start.setDate(1);
+                end.setMonth(end.getMonth() + 1);
+                end.setDate(1); // 1st of next month (exclusive)
+            } else if (view === 'timeGridWeek' || view === 'listWeek') {
+                const day = start.getDay();
+                const firstDay = props.content.startWeekOnSunday ? 0 : 1;
+                const diff = start.getDate() - day + (day < firstDay ? -7 + firstDay : firstDay);
+                start.setDate(diff);
+                end.setDate(start.getDate() + 7);
+            } else if (view === 'timeGridDay') {
+                end.setDate(end.getDate() + 1);
+            } else if (view === 'multiMonthYear') {
+                start.setMonth(0, 1);
+                end.setFullYear(end.getFullYear() + 1);
+                end.setMonth(0, 1);
+            }
+            
+            // Zero out times
+            start.setHours(0,0,0,0);
+            end.setHours(0,0,0,0);
+
+            return { start: start.toISOString(), end: end.toISOString() };
+        })();
+
+        // NEW: startDate component variable (with calculated default)
         const { value: startDate, setValue: setStartDate } = wwLib.wwVariable.useComponentVariable({
             uid: props.uid,
             name: 'startDate',
             type: 'string',
-            defaultValue: null,
+            defaultValue: initialDates.start,
         });
 
-        // NEW: endDate component variable
+        // NEW: endDate component variable (with calculated default)
         const { value: endDate, setValue: setEndDate } = wwLib.wwVariable.useComponentVariable({
             uid: props.uid,
             name: 'endDate',
             type: 'string',
-            defaultValue: null,
+            defaultValue: initialDates.end,
         });
 
 
@@ -330,7 +363,7 @@ export default {
 
 
                     emit('trigger-event', {
-                        name: 'viewChange',
+                        name: 'datesChange', // Renamed trigger event
                         event: { value: viewData },
                     });
                 },
